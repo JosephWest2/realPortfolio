@@ -1,0 +1,183 @@
+:root {
+    --bg: #1c1b21;
+    --c1: #22223b;
+    --c2: #4a4e69;
+    --c3: #9a8c98;
+    --c4: #c9ada7;
+    --c5: #f2e9e4;
+    --text: #f2e9e4;
+
+    --rounded-edges: 0.4rem;
+    --standard-padding: 1.8rem;
+    --box-shadow: 0.5rem 0.5rem 3rem 1rem var(--c1); 
+}
+* {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+}
+.c4 {
+    color: var(--c4);
+}
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: clamp(1rem, 100vw, 35rem);
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+    gap: 4rem;
+}
+a {
+    color: var(--text);
+}
+.card {
+    border-radius: var(--rounded-edges);
+    padding: var(--standard-padding);
+    box-shadow: var(--box-shadow);
+}
+.intro {
+    display: grid;
+    gap: 0.5rem 1.2rem;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+        "pfp name"
+        "pfp location"
+        "description description";
+}
+
+.pfp {
+    width: 6rem;
+    height: 7rem;
+    border-radius: 50%;
+    grid-area: pfp;
+    place-self: center;
+}
+.name {
+    grid-area: name;
+    align-self: end;
+}
+.location {
+    grid-area: location;
+    align-self: start;
+}
+.location-icon {
+    padding-right: 0.2em;
+}
+.description {
+    grid-area: description;
+}
+
+.technologies {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 0.8rem;
+    grid-template-areas:
+        "title title title title";
+}
+.technologies-title {
+    grid-area: title;
+    padding-bottom: 0.5rem;
+}
+.technology-icon {
+    width: 4rem;
+    height: 4rem;
+    object-fit: contain;
+}
+figure {
+    margin: auto;
+    text-align: center;
+}
+figcaption {
+    color: var(--c3)
+}
+
+.experience {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-x: hidden;
+}
+.radio-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.radio-btn {
+    background-color: var(--c2);
+    padding: 0.5rem;
+    width: 100%;
+    border: 1px solid var(--c2);
+}
+.radio-btn:hover {
+    opacity: 80%;
+    cursor: pointer;
+}
+.radio-btn[data-selected="true"] {
+    background-color: var(--c1);
+}
+.radio-left {
+    border-top-left-radius: 0.6rem;
+    border-bottom-left-radius: 0.6rem;
+    border-right: none;
+}
+.radio-right {
+    border-top-right-radius: 0.6rem;
+    border-bottom-right-radius: 0.6rem;
+    border-left: none;
+}
+.experience-item-container {
+    display: grid;
+    justify-content: start;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "logo title"
+        "logo duration"
+        "description description";
+}
+.experience-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    grid-area: logo;
+}
+.experience-title {
+    grid-area: title;
+    align-self: end;
+}
+.experience-duration {
+    color: var(--c3);
+    grid-area: duration;
+    align-self: start;
+}
+.experience-description {
+    grid-area: description;
+    padding-top: 0.5rem;
+}
+.experience-section {
+    display: flex;
+    width: 60%;
+    flex-direction: column;
+    gap: 1rem;
+}
+.experience-slider {
+    display: flex;
+    left: 0;
+    flex-direction: row;
+    width: 240%;
+    position: relative;
+    transition-property: left; 
+    transition-duration: 300ms;
+    transition-timing-function: ease-in-out;
+}
+.experience-slider[data-showing="education"] {
+    left: -120%;
+}
