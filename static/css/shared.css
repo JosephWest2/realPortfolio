@@ -9,7 +9,7 @@
 
     --rounded-edges: 0.4rem;
     --standard-padding: 1.8rem;
-    --box-shadow: 0.2rem 0.2rem 0.5rem 0.5rem var(--c1); 
+    --box-shadow: 2px 2px 8px 5px var(--c1); 
 }
 * {
     margin: 0;
