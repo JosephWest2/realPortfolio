@@ -3,7 +3,7 @@ package index
 templ index() {
     <div class="intro card">
         <img class="pfp" src="static/images/pfp.jpg" alt="A portrait photo of Joseph West">
-        <h1 class="name">Hi, I'm <span class="c4">Joseph West</span></h1>
+        <h1 class="name">Hi, I'm <span class="header-bold">Joseph West</span></h1>
         <div class="contact">
             <a href="https://www.google.com/maps/place/Salt+Lake+City,+UT" alt="link to Salt Lake City Utah on Google Maps" target="_blank" class="location"><i class="fa-solid fa-location-dot location-icon"></i> Salt Lake City, UT</a>
             <a href="https://github.com/JosephWest2" target="_blank" alt="Link to Joseph's github"><i class="fa-brands fa-github link-icon"></i></a>
@@ -12,39 +12,41 @@ templ index() {
         <h2 class="description">a Software Engineer and Biochemist</h2>
     </div>
     <div class="technologies card">
-        <h2 class="technologies-title"><span class="c4">Technologies</span> I'm focused on</h2>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/golangIcon.png" alt="Golang Icon">
-            <figcaption>Golang</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/cppIcon.png" alt="C++ Icon">
-            <figcaption>C++</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/postgresIcon.png" alt="Postgres Icon">
-            <figcaption>PostgreSQL</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/javascriptIcon.png" alt="javascript Icon">
-            <figcaption>Javascript</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/cssIcon.png" alt="CSS Icon">
-            <figcaption>CSS</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/gitIcon.png" alt="Git Icon">
-            <figcaption>Git</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/nextjsIcon.png" alt="NextJS Icon">
-            <figcaption>NextJS</figcaption>
-        </figure>
-        <figure>
-            <img class="technology-icon" src="static/images/technologies/linuxIcon.png" alt="Linux Icon">
-            <figcaption>Linux</figcaption>
-        </figure>
+        <h2 class="technologies-title"><span class="header-bold">Technologies</span> I'm focused on</h2>
+        <div class="technologies-icon-grid">
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/golangIcon.png" alt="Golang Icon">
+                <figcaption>Golang</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/cppIcon.png" alt="C++ Icon">
+                <figcaption>C++</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/postgresIcon.png" alt="Postgres Icon">
+                <figcaption>PostgreSQL</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/javascriptIcon.png" alt="javascript Icon">
+                <figcaption>Javascript</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/cssIcon.png" alt="CSS Icon">
+                <figcaption>CSS</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/gitIcon.png" alt="Git Icon">
+                <figcaption>Git</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/nextjsIcon.png" alt="NextJS Icon">
+                <figcaption>NextJS</figcaption>
+            </figure>
+            <figure>
+                <img class="technology-icon" src="static/images/technologies/linuxIcon.png" alt="Linux Icon">
+                <figcaption>Linux</figcaption>
+            </figure>
+        </div>
     </div>
     <div class="experience card">
         <div class="radio-container">
@@ -83,7 +85,7 @@ templ index() {
         </div>
     </div>
     <div class="projects card">
-        <h2 class="projects-title">Recent <span class="c4">projects</span></h2>
+        <h2 class="projects-title">Recent <span class="header-bold">projects</span></h2>
         <div class="project">
             <h3 class="project-title">Project Name</h3>
             <img class="project-img" src="static/images/projects/wip.jpg" alt="">
