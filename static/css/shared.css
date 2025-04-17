@@ -7,7 +7,7 @@
     --c5: #ef8354;
 
     --rounded-edges: 0.4rem;
-    --standard-padding: 1.8rem;
+    --standard-padding: 2rem;
 }
 * {
     margin: 0;
@@ -43,13 +43,14 @@ h1 {
 h2 {
     font-size: 2em;
 }
+h3 {
+    font-size: 1.6em;
+}
 a,
 p,
 i {
     font-size: 1.2em;
 }
-
-
 
 .card {
     padding: var(--standard-padding);
@@ -72,12 +73,16 @@ i {
 }
 .intro {
     display: grid;
-    gap: 0.5rem 1.2rem;
-    grid-template-columns: auto auto;
+    gap: 1rem;
+    grid-template-columns: min-content auto;
     grid-template-areas:
         "pfp name"
         "pfp contact"
-        "description description";
+        "description description"
+        "about about";
+}
+.about {
+    grid-area: about;
 }
 .contact {
     display: flex;
@@ -91,10 +96,24 @@ i {
 .link-icon {
     font-size: 1.5em;
 }
+.contact-me {
+    border-radius: var(--rounded-edges);
+    display: flex;
+    gap: 0.5em;
+    text-decoration: none;
+    padding: 0.3rem 0.7rem;
+    background-color: var(--c2);
+}
+.contact-me:hover {
+    background-color: var(--c1);
+}
 
 .pfp {
-    width: 8rem;
-    height: 9.2rem;
+    --aspect: (calc(515/592));
+    --width: 8rem;
+    width: var(--width);
+    height: calc(var(--width) / var(--aspect))rem;
+    margin: auto 2rem;
     border-radius: 50%;
     grid-area: pfp;
     place-self: center;
@@ -117,13 +136,13 @@ i {
 }
 .technologies-icon-grid {
     display: grid;
-    align-self: center;
-    width: 100%;
+    width: fit-content;
+    margin: auto;
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
+    margin-bottom: 1rem;
 }
 .technologies-title {
-    grid-area: title;
     padding-bottom: 2rem;
 }
 .technology-icon {
@@ -133,6 +152,8 @@ i {
 }
 figure {
     text-align: center;
+    width: 6rem;
+    height: 6rem;
 }
 figcaption {
     color: var(--c3)
