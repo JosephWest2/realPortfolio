@@ -15,15 +15,13 @@
     color: var(--c4);
 }
 body {
-    background-color: var(--c0);
-    color: var(--c4);
     font-family: Verdana, sans-serif;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow-x: hidden;
 }
 main {
+    color: var(--c4);
     --padding: clamp(50px, 10vh, 100px);
     display: flex;
     flex-direction: column;
@@ -103,9 +101,16 @@ i {
     text-decoration: none;
     padding: 0.3rem 0.7rem;
     background-color: var(--c2);
+    transition: background-color 150ms ease-in-out;
 }
 .contact-me:hover {
-    background-color: var(--c1);
+    background-color: color-mix(in srgb, var(--c2) 80%, transparent);
+}
+.github-link {
+    transition: opacity 150ms ease-in-out;
+}
+.github-link:hover {
+    opacity: 0.8;
 }
 
 .pfp {
@@ -121,6 +126,12 @@ i {
 .name {
     grid-area: name;
     align-self: end;
+}
+.location {
+    transition: opacity 150ms ease-in-out;
+}
+.location:hover {
+    opacity: 0.8;
 }
 .location-icon {
     padding-right: 0.3em;
@@ -177,9 +188,10 @@ figcaption {
     border: 1px solid var(--c2);
     font-weight: bold;
     font-size: 1em;
+    transition: background-color 150ms ease-in-out;
 }
 .radio-btn:hover {
-    opacity: 80%;
+    background-color: color-mix(in srgb, var(--c2) 80%, transparent);
     cursor: pointer;
 }
 .radio-btn[data-selected="true"] {
@@ -283,4 +295,23 @@ figcaption {
 }
 .project-technology-caption {
     font-size: 0.8rem;
+}
+
+
+/* Dot background */
+
+#dot-canvas {
+    position: fixed;
+    inset: 0;
+    display: block;
+    background-color: var(--c0);
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+}
+
+#content {
+    position: relative;
+    z-index: 1;
 }
