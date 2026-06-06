@@ -182,7 +182,7 @@ p {
     height: var(--technology-icon-size);
     object-fit: contain;
 }
-figure {
+.technology-figure {
     text-align: center;
     width: var(--technology-figure-size);
     min-height: var(--technology-figure-size);
@@ -309,9 +309,17 @@ figcaption {
     grid-area: technologies;
     display: flex;
     flex-direction: row;
-    align-items: center;
     justify-content: start;
-    gap: 0.2rem;
+    padding-top: 0.5rem;
+}
+.project-technology-figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    text-align: center;
+    width: 5rem;
+    min-height: unset;
 }
 .project-technology-icon {
     width: 2rem;
