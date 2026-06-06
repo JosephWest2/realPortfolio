@@ -12,14 +12,14 @@
     --section-gap: clamp(3.125rem, 10svh, 6.25rem);
     --standard-padding: 2rem;
     --intro-gap: 1rem;
-    --technology-grid-columns: 4;
+    --technology-grid-columns: 5;
     --technology-grid-gap: 2rem;
     --technology-icon-size: 5rem;
     --technology-figure-size: 6rem;
     --font-caption: 1rem;
     --experience-slider-gap: 6.25rem;
     --experience-icon-size: 3.5rem;
-    --project-gap: 0.3rem;
+    --project-gap: 0.5rem;
     --pfp-size: 8rem;
     --font-h1: 3.2rem;
     --font-h2: 2rem;
@@ -291,7 +291,8 @@ figcaption {
     grid-template-areas:
         "title img"
         "description img"
-        "technologies img";
+        "technologies technologies"
+        "links links";
 }
 .project-title {
     grid-area: title;
@@ -308,8 +309,8 @@ figcaption {
     grid-area: technologies;
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: start;
     gap: 0.2rem;
 }
 .project-technology-icon {
