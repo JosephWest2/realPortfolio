@@ -18,6 +18,8 @@
     let dpr = 1;
     let animationFrame = 0;
     let lastFrameTime = 0;
+    let currentScrollY = window.scrollY;
+    let targetScrollY = window.scrollY;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const randomBetween = (min, max) => min + Math.random() * (max - min);
@@ -85,7 +87,7 @@
             };
         }
 
-        const parallaxOffset = window.scrollY * (0.08 + dot.depth * 0.22);
+        const parallaxOffset = currentScrollY * (0.08 + dot.depth * 0.22);
         let x = dot.x;
         let y = dot.y - parallaxOffset;
 
@@ -116,6 +118,8 @@
         if (reducedMotionQuery.matches) {
             return;
         }
+
+        currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
 
         dots.forEach(dot => {
             if (pointer.active) {
@@ -173,11 +177,7 @@
         pointer.active = false;
     });
     window.addEventListener('scroll', () => {
-        if (reducedMotionQuery.matches) {
-            return;
-        }
-
-        draw();
+        targetScrollY = window.scrollY;
     }, { passive: true });
     document.addEventListener('visibilitychange', startAnimation);
     reducedMotionQuery.addEventListener('change', startAnimation);
