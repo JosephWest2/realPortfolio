@@ -330,6 +330,14 @@ figcaption {
     font-size: 0.8rem;
 }
 
+.project-links {
+    grid-area: links;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    gap: 1rem;
+}
+
 
 /* Dot background */
 
