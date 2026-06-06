@@ -7,9 +7,27 @@
     --c5: #ef8354;
 
     --rounded-edges: 0.4rem;
+    --page-max-width: 50rem;
+    --page-gutter: 2rem;
+    --section-gap: clamp(3.125rem, 10svh, 6.25rem);
     --standard-padding: 2rem;
+    --intro-gap: 1rem;
+    --technology-grid-columns: 4;
+    --technology-grid-gap: 2rem;
+    --technology-icon-size: 5rem;
+    --technology-figure-size: 6rem;
+    --font-caption: 1rem;
+    --experience-slider-gap: 6.25rem;
+    --experience-icon-size: 3.5rem;
+    --project-gap: 0.3rem;
+    --pfp-size: 8rem;
+    --font-h1: 3.2rem;
+    --font-h2: 2rem;
+    --font-h3: 1.6rem;
+    --font-body: 1.2rem;
 }
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
     color: var(--c4);
@@ -22,32 +40,30 @@ body {
 }
 main {
     color: var(--c4);
-    --padding: clamp(50px, 10svh, 100px);
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    width: clamp(600px, 80vw, 800px);
-    padding-top: var(--padding);
-    padding-bottom: var(--padding);
-    gap: var(--padding);
+    width: min(var(--page-max-width), calc(100% - (var(--page-gutter) * 2)));
+    padding-top: var(--section-gap);
+    padding-bottom: var(--section-gap);
+    gap: var(--section-gap);
 }
 .header-bold {
     color: var(--c5);
     font-weight: bolder;
 }
 h1 {
-    font-size: 3.2em;
+    font-size: var(--font-h1);
 }
 h2 {
-    font-size: 2em;
+    font-size: var(--font-h2);
 }
 h3 {
-    font-size: 1.6em;
+    font-size: var(--font-h3);
 }
 a,
-p,
-i {
-    font-size: 1.2em;
+p {
+    font-size: var(--font-body);
 }
 
 .card {
@@ -72,7 +88,7 @@ i {
 }
 .intro {
     display: grid;
-    gap: 1rem;
+    gap: var(--intro-gap);
     grid-template-columns: min-content auto;
     grid-template-areas:
         "pfp name"
@@ -93,6 +109,7 @@ i {
     justify-content: flex-start;
     align-self: start;
     align-items: center;
+    flex-wrap: wrap;
     gap: 1rem;
     grid-area: contact;
 }
@@ -119,10 +136,9 @@ i {
 }
 
 .pfp {
-    --aspect: (calc(515/592));
-    --width: 8rem;
-    width: var(--width);
-    height: calc(var(--width) / var(--aspect))rem;
+    width: var(--pfp-size);
+    aspect-ratio: 515 / 592;
+    object-fit: cover;
     margin: auto 2rem;
     border-radius: 50%;
     grid-area: pfp;
@@ -154,24 +170,25 @@ i {
     display: grid;
     width: fit-content;
     margin: auto;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
+    grid-template-columns: repeat(var(--technology-grid-columns), 1fr);
+    gap: var(--technology-grid-gap);
     margin-bottom: 1rem;
 }
 .technologies-title {
     padding-bottom: 2rem;
 }
 .technology-icon {
-    width: 5rem;
-    height: 5rem;
+    width: var(--technology-icon-size);
+    height: var(--technology-icon-size);
     object-fit: contain;
 }
 figure {
     text-align: center;
-    width: 6rem;
-    height: 6rem;
+    width: var(--technology-figure-size);
+    min-height: var(--technology-figure-size);
 }
 figcaption {
+    font-size: var(--font-caption);
     color: var(--c3)
 }
 
@@ -223,9 +240,10 @@ figcaption {
         "description description";
 }
 .experience-icon {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: var(--experience-icon-size);
+    height: var(--experience-icon-size);
     border-radius: 50%;
+    object-fit: cover;
     grid-area: logo;
 }
 .experience-title {
@@ -245,21 +263,21 @@ figcaption {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    width: calc((100% - 100px) / 2);
+    width: calc((100% - var(--experience-slider-gap)) / 2);
 }
 .experience-slider {
     display: flex;
     left: 0;
     flex-direction: row;
-    width: calc(200% + 100px);
-    column-gap: 100px;
+    width: calc(200% + var(--experience-slider-gap));
+    column-gap: var(--experience-slider-gap);
     position: relative;
     transition-property: left; 
     transition-duration: 300ms;
     transition-timing-function: ease-in-out;
 }
 .experience-slider[data-showing="education"] {
-    left: calc(-100% - 100px);
+    left: calc(-100% - var(--experience-slider-gap));
 }
 .projects {
     display: flex;
@@ -268,7 +286,7 @@ figcaption {
 }
 .project {
     display: grid;
-    gap: 0.3rem;
+    gap: var(--project-gap);
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
         "title img"
@@ -281,6 +299,7 @@ figcaption {
 .project-img {
     grid-area: img;
     width: 100%;
+    height: auto;
 }
 .project-description {
     grid-area: description;
@@ -319,4 +338,115 @@ figcaption {
 #content {
     position: relative;
     z-index: 1;
+}
+
+@media (max-width: 47.999rem) {
+    :root {
+        --page-gutter: 1.5rem;
+        --section-gap: clamp(2.5rem, 8svh, 4.5rem);
+        --standard-padding: 1.5rem;
+        --intro-gap: 0.9rem;
+        --technology-grid-columns: 4;
+        --technology-grid-gap: 1.5rem;
+        --technology-icon-size: 4.5rem;
+        --technology-figure-size: 5.5rem;
+        --font-caption: 0.9rem;
+        --experience-slider-gap: 3rem;
+        --experience-icon-size: 3.25rem;
+        --project-gap: 0.75rem;
+        --pfp-size: 6rem;
+        --font-h1: 2.7rem;
+        --font-h2: 1.75rem;
+        --font-h3: 1.4rem;
+        --font-body: 1.08rem;
+    }
+
+    .intro {
+        grid-template-columns: min-content minmax(0, 1fr);
+        grid-template-areas:
+            "pfp name"
+            "contact contact"
+            "description description"
+            "about about";
+    }
+
+    .pfp {
+        margin: auto 1rem auto 0;
+    }
+
+    .name {
+        align-self: center;
+    }
+
+    .contact {
+        align-self: start;
+        gap: 0.75rem;
+    }
+
+    .project {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "title"
+            "img"
+            "description"
+            "technologies";
+    }
+
+    .project-technologies {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 39.999rem) {
+    :root {
+        --page-gutter: 1rem;
+        --section-gap: clamp(2rem, 7svh, 3.5rem);
+        --standard-padding: 1.15rem;
+        --intro-gap: 0.75rem;
+        --technology-grid-columns: 3;
+        --technology-grid-gap: 1rem;
+        --technology-icon-size: 3.5rem;
+        --technology-figure-size: 4.5rem;
+        --font-caption: 0.8rem;
+        --experience-slider-gap: 1.5rem;
+        --experience-icon-size: 3rem;
+        --project-gap: 0.65rem;
+        --font-h1: 2.25rem;
+        --font-h2: 1.55rem;
+        --font-h3: 1.25rem;
+        --font-body: 1rem;
+    }
+
+    .intro {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "name"
+            "description"
+            "contact"
+            "about";
+    }
+
+    .pfp {
+        display: none;
+    }
+
+    .contact {
+        gap: 0.6rem;
+    }
+
+    .contact-me {
+        padding: 0.25rem 0.55rem;
+    }
+
+    .technologies-icon-grid {
+        margin-inline: auto;
+    }
+
+    .experience-item-container {
+        column-gap: 0.75rem;
+    }
+
+    .radio-btn {
+        padding: 0.6rem;
+    }
 }
