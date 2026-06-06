@@ -127,7 +127,7 @@
 
                 if (distance > 0 && distance < radius) {
                     const force = ((radius - distance) / radius) ** 2;
-                    const push = force * (10 + dot.depth * 14) * deltaSeconds;
+                    const push = force * (102 + dot.depth * 132) * deltaSeconds;
                     dot.vx += (dx / distance) * push;
                     dot.vy += (dy / distance) * push;
                 }
