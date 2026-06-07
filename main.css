@@ -352,6 +352,27 @@ figcaption {
 .project-link:hover {
     background-color: color-mix(in srgb, var(--c2) 80%, black);
 }
+.project-link-disabled {
+    position: relative;
+    overflow: hidden;
+    color: var(--c3);
+    background-color: color-mix(in srgb, var(--c2) 55%, var(--c0));
+}
+.project-link-disabled:hover {
+    background-color: color-mix(in srgb, var(--c2) 55%, var(--c0));
+}
+.project-link-disabled::after {
+    position: absolute;
+    content: '';
+    left: 0.25rem;
+    right: 0.25rem;
+    top: 50%;
+    height: 2px;
+    background-color: var(--c2);
+    transform: rotate(-15deg);
+    transform-origin: center;
+    pointer-events: none;
+}
 
 
 /* Dot background */
