@@ -19,7 +19,8 @@
     --font-caption: 1rem;
     --experience-slider-gap: 6.25rem;
     --experience-icon-size: 3.5rem;
-    --project-gap: 0.5rem;
+    --projects-gap: 3rem;
+    --project-gap: 1rem 0.5rem;
     --pfp-size: 8rem;
     --font-h1: 3.2rem;
     --font-h2: 2rem;
@@ -282,7 +283,7 @@ figcaption {
 .projects {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: var(--projects-gap);
 }
 .project {
     display: grid;
@@ -291,8 +292,7 @@ figcaption {
     grid-template-areas:
         "title img"
         "description img"
-        "technologies technologies"
-        "links links";
+        "links technologies";
 }
 .project-title {
     grid-area: title;
@@ -310,7 +310,6 @@ figcaption {
     display: flex;
     flex-direction: row;
     justify-content: start;
-    padding-top: 0.5rem;
 }
 .project-technology-figure {
     display: flex;
@@ -332,10 +331,26 @@ figcaption {
 
 .project-links {
     grid-area: links;
+    align-self: start;
     display: flex;
     flex-direction: row;
+    align-items: flex-start;
     justify-content: start;
+    flex-wrap: wrap;
     gap: 1rem;
+}
+.project-link {
+    border-radius: var(--rounded-edges);
+    display: inline-flex;
+    align-items: center;
+    font-size: 1rem;
+    text-decoration: none;
+    padding: 0.3rem 0.7rem;
+    background-color: var(--c2);
+    transition: background-color 150ms ease-in-out;
+}
+.project-link:hover {
+    background-color: color-mix(in srgb, var(--c2) 80%, black);
 }
 
 
@@ -370,6 +385,7 @@ figcaption {
         --font-caption: 0.9rem;
         --experience-slider-gap: 3rem;
         --experience-icon-size: 3.25rem;
+        --projects-gap: 2rem;
         --project-gap: 0.75rem;
         --pfp-size: 6rem;
         --font-h1: 2.7rem;
@@ -406,7 +422,8 @@ figcaption {
             "title"
             "img"
             "description"
-            "technologies";
+            "technologies"
+            "links";
     }
 
     .project-technologies {
