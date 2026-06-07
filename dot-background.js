@@ -6,6 +6,7 @@
 
     const ctx = canvas.getContext('2d');
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mobileQuery = window.matchMedia('(max-width: 47.999rem)');
     const pointer = {
         x: 0,
         y: 0,
@@ -18,16 +19,34 @@
     let dpr = 1;
     let animationFrame = 0;
     let lastFrameTime = 0;
+    let resizeFrame = 0;
     let currentScrollY = window.scrollY;
     let targetScrollY = window.scrollY;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const randomBetween = (min, max) => min + Math.random() * (max - min);
 
+    function getViewportSize() {
+        const viewport = window.visualViewport;
+
+        return {
+            width: Math.round(viewport?.width || document.documentElement.clientWidth || window.innerWidth),
+            height: Math.round(viewport?.height || document.documentElement.clientHeight || window.innerHeight),
+        };
+    }
+
     function resizeCanvas() {
-        dpr = clamp(window.devicePixelRatio || 1, 1, 2);
-        width = window.innerWidth;
-        height = window.innerHeight;
+        const nextDpr = clamp(window.devicePixelRatio || 1, 1, 2);
+        const nextSize = getViewportSize();
+        const isInitialResize = dots.length === 0;
+        const widthChanged = nextSize.width !== width;
+        const heightChanged = nextSize.height !== height;
+        const dprChanged = nextDpr !== dpr;
+        const shouldCreateDots = isInitialResize || widthChanged || dprChanged || (!mobileQuery.matches && heightChanged);
+
+        dpr = nextDpr;
+        width = nextSize.width;
+        height = nextSize.height;
 
         canvas.width = Math.floor(width * dpr);
         canvas.height = Math.floor(height * dpr);
@@ -35,8 +54,21 @@
         canvas.style.height = `${height}px`;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        createDots();
+        if (shouldCreateDots) {
+            createDots();
+        } else {
+            normalizeDots();
+        }
+
         draw();
+    }
+
+    function requestCanvasResize() {
+        window.cancelAnimationFrame(resizeFrame);
+        resizeFrame = window.requestAnimationFrame(() => {
+            resizeFrame = 0;
+            resizeCanvas();
+        });
     }
 
     function createDots() {
@@ -63,6 +95,13 @@
         });
     }
 
+    function normalizeDots() {
+        dots.forEach(dot => {
+            dot.x = clamp(dot.x, 0, width);
+            dot.y = clamp(dot.y, 0, height);
+        });
+    }
+
     function wrapDot(dot) {
         const margin = 40;
 
@@ -80,7 +119,7 @@
     }
 
     function getProjectedPosition(dot) {
-        if (reducedMotionQuery.matches) {
+        if (reducedMotionQuery.matches || mobileQuery.matches) {
             return {
                 x: dot.x,
                 y: dot.y,
@@ -122,7 +161,7 @@
         currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
 
         dots.forEach(dot => {
-            if (pointer.active) {
+            if (pointer.active && !mobileQuery.matches) {
                 const { x, y } = getProjectedPosition(dot);
                 const dx = x - pointer.x;
                 const dy = y - pointer.y;
@@ -167,7 +206,8 @@
         }
     }
 
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', requestCanvasResize);
+    window.visualViewport?.addEventListener('resize', requestCanvasResize);
     window.addEventListener('pointermove', event => {
         pointer.x = event.clientX;
         pointer.y = event.clientY;
@@ -181,6 +221,10 @@
     }, { passive: true });
     document.addEventListener('visibilitychange', startAnimation);
     reducedMotionQuery.addEventListener('change', startAnimation);
+    mobileQuery.addEventListener('change', () => {
+        resizeCanvas();
+        startAnimation();
+    });
 
     resizeCanvas();
     startAnimation();
