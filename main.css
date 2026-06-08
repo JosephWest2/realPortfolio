@@ -72,24 +72,19 @@ p {
 }
 
 .card {
+    --card-border-strong: #4a4e69ff;
+    --card-border-fade: #4a4e6910;
+    --card-bg: color-mix(in srgb, var(--c0) 90%, var(--c1));
+
     padding: var(--standard-padding);
     position: relative;
-    border-bottom: 1px solid;
-    border-top: 1px solid;
-    border-image: linear-gradient(to right, #4a4e69ff, #4a4e6910, #4a4e69ff) 1;
-    background-color: color-mix(in srgb, var(--c0) 90%, var(--c1));
-}
-.card::after {
-    position: absolute;
-    pointer-events: none;
-    content: '';
-    width: calc(100% - 2px);
-    height: 100%;
-    top: 0;
-    left: 0;
-    border-left: 1px solid;
-    border-right: 1px solid;
-    border-image: linear-gradient(to bottom, #4a4e69ff, #4a4e6910, #4a4e69ff) 1;
+    border: 0;
+    background:
+        linear-gradient(to right, var(--card-border-strong), var(--card-border-fade), var(--card-border-strong)) top / 100% 1px no-repeat,
+        linear-gradient(to right, var(--card-border-strong), var(--card-border-fade), var(--card-border-strong)) bottom / 100% 1px no-repeat,
+        linear-gradient(to bottom, var(--card-border-strong), var(--card-border-fade), var(--card-border-strong)) left / 1px 100% no-repeat,
+        linear-gradient(to bottom, var(--card-border-strong), var(--card-border-fade), var(--card-border-strong)) right / 1px 100% no-repeat,
+        var(--card-bg);
 }
 .intro {
     display: grid;
