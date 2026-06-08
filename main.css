@@ -452,6 +452,10 @@ figcaption {
 }
 
 @media (max-width: 39.999rem) {
+    #dot-canvas {
+        height: 100lvh;
+    }
+
     :root {
         --page-gutter: 1rem;
         --section-gap: clamp(2rem, 7svh, 3.5rem);

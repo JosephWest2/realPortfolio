@@ -14,6 +14,7 @@ if (canvas) {
 function initializeDotBackground(THREE, canvas) {
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const mobileQuery = window.matchMedia('(max-width: 47.999rem)');
+    const smallPhoneQuery = window.matchMedia('(max-width: 39.999rem)');
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
     const renderer = new THREE.WebGLRenderer({
@@ -189,18 +190,35 @@ function initializeDotBackground(THREE, canvas) {
     }
 
     function getViewportSize() {
+        const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+
+        if (smallPhoneQuery.matches) {
+            const canvasRect = canvas.getBoundingClientRect();
+
+            return {
+                width: Math.round(canvasRect.width || viewportWidth),
+                height: Math.round(canvasRect.height || document.documentElement.clientHeight || window.innerHeight),
+            };
+        }
+
         return {
-            width: Math.round(document.documentElement.clientWidth || window.innerWidth),
+            width: Math.round(viewportWidth),
             height: Math.round(document.documentElement.clientHeight || window.innerHeight),
         };
     }
 
     function resizeRenderer() {
-        const nextSize = getViewportSize();
+        let nextSize = getViewportSize();
         const nextDpr = clamp(window.devicePixelRatio || 1, 1, 1.25);
+        const smallPhone = smallPhoneQuery.matches;
         const widthChanged = nextSize.width !== width;
-        const heightChanged = nextSize.height !== height;
+        let heightChanged = nextSize.height !== height;
         const dprChanged = nextDpr !== dpr;
+
+        if (smallPhone && !widthChanged && heightChanged && height > 0) {
+            nextSize = { ...nextSize, height };
+            heightChanged = false;
+        }
 
         if (!widthChanged && !heightChanged && !dprChanged) {
             return;
@@ -236,14 +254,20 @@ function initializeDotBackground(THREE, canvas) {
         });
     }
 
+    function getParallaxScrollY() {
+        return smallPhoneQuery.matches ? 0 : window.scrollY;
+    }
+
     function update(deltaSeconds) {
         motionTime += deltaSeconds;
         currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
     }
 
     function renderScene() {
+        const scrollParallaxDisabled = reducedMotionQuery.matches || smallPhoneQuery.matches;
+
         layers.forEach(layer => {
-            const scrollOffset = reducedMotionQuery.matches
+            const scrollOffset = scrollParallaxDisabled
                 ? 0
                 : currentScrollY * layer.config.parallax;
             const layerOffset = positiveModulo(scrollOffset, layer.wrapHeight);
@@ -269,8 +293,8 @@ function initializeDotBackground(THREE, canvas) {
     function startRendering() {
         renderer.setAnimationLoop(null);
         lastFrameTime = 0;
-        currentScrollY = window.scrollY;
-        targetScrollY = window.scrollY;
+        currentScrollY = getParallaxScrollY();
+        targetScrollY = currentScrollY;
         renderScene();
 
         if (!document.hidden && !reducedMotionQuery.matches) {
@@ -281,12 +305,16 @@ function initializeDotBackground(THREE, canvas) {
     window.addEventListener('resize', requestResize);
     window.visualViewport?.addEventListener('resize', requestResize);
     window.addEventListener('scroll', () => {
-        targetScrollY = window.scrollY;
+        targetScrollY = getParallaxScrollY();
     }, { passive: true });
     document.addEventListener('visibilitychange', startRendering);
     reducedMotionQuery.addEventListener('change', startRendering);
     mobileQuery.addEventListener('change', () => {
         createLayers();
+        startRendering();
+    });
+    smallPhoneQuery.addEventListener('change', () => {
+        requestResize();
         startRendering();
     });
 
