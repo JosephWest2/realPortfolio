@@ -34,6 +34,12 @@ function initializeDotBackground(THREE, canvas) {
         speedMax: 5.5,
         speedMin: 0.5,
     };
+    const pointerPushConfig = {
+        maxVelocity: 1400,
+        radius: 150,
+        strength: 425,
+        velocityDamping: 1.8,
+    };
 
     let width = 0;
     let height = 0;
@@ -43,10 +49,20 @@ function initializeDotBackground(THREE, canvas) {
     let currentScrollY = window.scrollY;
     let targetScrollY = window.scrollY;
     let dotField = null;
+    const pointer = {
+        active: false,
+        x: 0,
+        y: 0,
+    };
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const lerp = (min, max, amount) => min + (max - min) * amount;
     const randomBetween = (min, max) => min + Math.random() * (max - min);
+    const wrapRange = (value, minValue, maxValue) => {
+        const range = maxValue - minValue;
+
+        return minValue + ((((value - minValue) % range) + range) % range);
+    };
     let motionTime = 0;
 
     const dotVertexShader = `
@@ -54,6 +70,7 @@ function initializeDotBackground(THREE, canvas) {
         attribute float edgeSoftness;
         attribute float opacity;
         attribute float parallax;
+        attribute vec2 pushOffset;
         attribute vec2 velocity;
 
         uniform vec4 bounds;
@@ -72,8 +89,8 @@ function initializeDotBackground(THREE, canvas) {
 
         void main() {
             vec3 animatedPosition = position;
-            animatedPosition.x = wrapRange(position.x + velocity.x * time, bounds.x, bounds.y);
-            animatedPosition.y = wrapRange(position.y + velocity.y * time + scrollY * parallax, bounds.z, bounds.w);
+            animatedPosition.x = wrapRange(position.x + velocity.x * time, bounds.x, bounds.y) + pushOffset.x;
+            animatedPosition.y = wrapRange(position.y + velocity.y * time + scrollY * parallax, bounds.z, bounds.w) + pushOffset.y;
 
             vDotSize = dotSize;
             vEdgeSoftness = edgeSoftness;
@@ -134,6 +151,8 @@ function initializeDotBackground(THREE, canvas) {
         const maxY = height / 2 + margin;
         const positions = new Float32Array(count * 3);
         const velocities = new Float32Array(count * 2);
+        const pushOffsets = new Float32Array(count * 2);
+        const pushVelocities = new Float32Array(count * 2);
         const dotSizes = new Float32Array(count);
         const edgeSoftnesses = new Float32Array(count);
         const opacities = new Float32Array(count);
@@ -167,6 +186,7 @@ function initializeDotBackground(THREE, canvas) {
         geometry.setAttribute('opacity', new THREE.BufferAttribute(opacities, 1));
         geometry.setAttribute('parallax', new THREE.BufferAttribute(parallaxes, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('pushOffset', new THREE.BufferAttribute(pushOffsets, 2).setUsage(THREE.DynamicDrawUsage));
         geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 2));
 
         const material = createDotMaterial(new THREE.Vector4(minX, maxX, minY, maxY));
@@ -176,14 +196,20 @@ function initializeDotBackground(THREE, canvas) {
         return {
             geometry,
             material,
+            parallaxes,
             points,
+            positions,
+            pushOffsets,
+            pushVelocities,
+            velocities,
         };
     }
 
     function createDotFieldForViewport() {
         clearDotField();
 
-        const totalDotCount = clamp(Math.floor((width * height) / 28000), 28, 75);
+        const baseDotCount = clamp(Math.floor((width * height) / 28000), 28, 75);
+        const totalDotCount = Math.round(baseDotCount * 2 / 3);
         dotField = createDotField(totalDotCount);
     }
 
@@ -267,9 +293,155 @@ function initializeDotBackground(THREE, canvas) {
         return smallPhoneQuery.matches ? 0 : window.scrollY;
     }
 
+    function isPointerPushEnabled() {
+        return !mobileQuery.matches && !reducedMotionQuery.matches;
+    }
+
+    function getDotBounds() {
+        const bounds = dotField.material.uniforms.bounds.value;
+
+        return {
+            maxX: bounds.y,
+            maxY: bounds.w,
+            minX: bounds.x,
+            minY: bounds.z,
+        };
+    }
+
+    function resetPointerPush() {
+        pointer.active = false;
+
+        if (!dotField) {
+            return;
+        }
+
+        dotField.pushOffsets.fill(0);
+        dotField.pushVelocities.fill(0);
+        dotField.geometry.attributes.pushOffset.needsUpdate = true;
+    }
+
+    function updatePointerPush(deltaSeconds) {
+        if (!dotField || deltaSeconds <= 0) {
+            return;
+        }
+
+        const pushOffsets = dotField.pushOffsets;
+        const pushVelocities = dotField.pushVelocities;
+        const hasPointerForce = pointer.active && isPointerPushEnabled();
+        let hasPushMotion = hasPointerForce;
+
+        if (!hasPointerForce) {
+            for (let index = 0; index < pushVelocities.length; index++) {
+                if (Math.abs(pushVelocities[index]) > 0.01) {
+                    hasPushMotion = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasPushMotion) {
+            return;
+        }
+
+        const { maxX, maxY, minX, minY } = getDotBounds();
+        const radius = pointerPushConfig.radius;
+        const radiusSq = radius * radius;
+        const velocityDamping = Math.exp(-pointerPushConfig.velocityDamping * deltaSeconds);
+        const positions = dotField.positions;
+        const velocities = dotField.velocities;
+        const parallaxes = dotField.parallaxes;
+
+        for (let index = 0; index < pushOffsets.length / 2; index++) {
+            const positionIndex = index * 3;
+            const vectorIndex = index * 2;
+            let offsetX = pushOffsets[vectorIndex];
+            let offsetY = pushOffsets[vectorIndex + 1];
+            let pushVelocityX = pushVelocities[vectorIndex];
+            let pushVelocityY = pushVelocities[vectorIndex + 1];
+
+            if (hasPointerForce) {
+                const baseX = wrapRange(
+                    positions[positionIndex] + velocities[vectorIndex] * motionTime,
+                    minX,
+                    maxX,
+                );
+                const baseY = wrapRange(
+                    positions[positionIndex + 1] + velocities[vectorIndex + 1] * motionTime + currentScrollY * parallaxes[index],
+                    minY,
+                    maxY,
+                );
+                let distanceX = baseX + offsetX - pointer.x;
+                let distanceY = baseY + offsetY - pointer.y;
+                let distanceSq = distanceX * distanceX + distanceY * distanceY;
+
+                if (distanceSq < radiusSq) {
+                    if (distanceSq < 1) {
+                        const fallbackAngle = index * 2.399963229728653;
+                        distanceX = Math.cos(fallbackAngle);
+                        distanceY = Math.sin(fallbackAngle);
+                        distanceSq = 1;
+                    }
+
+                    const distance = Math.sqrt(distanceSq);
+                    const falloff = 1 - distance / radius;
+                    const impulse = pointerPushConfig.strength * falloff * falloff * deltaSeconds;
+
+                    pushVelocityX += (distanceX / distance) * impulse;
+                    pushVelocityY += (distanceY / distance) * impulse;
+                }
+            }
+
+            pushVelocityX *= velocityDamping;
+            pushVelocityY *= velocityDamping;
+
+            const velocityMagnitude = Math.hypot(pushVelocityX, pushVelocityY);
+            if (velocityMagnitude > pointerPushConfig.maxVelocity) {
+                const velocityScale = pointerPushConfig.maxVelocity / velocityMagnitude;
+                pushVelocityX *= velocityScale;
+                pushVelocityY *= velocityScale;
+            }
+
+            offsetX += pushVelocityX * deltaSeconds;
+            offsetY += pushVelocityY * deltaSeconds;
+
+            if (!hasPointerForce && Math.abs(pushVelocityX) < 0.02 && Math.abs(pushVelocityY) < 0.02) {
+                pushVelocityX = 0;
+                pushVelocityY = 0;
+            }
+
+            pushOffsets[vectorIndex] = offsetX;
+            pushOffsets[vectorIndex + 1] = offsetY;
+            pushVelocities[vectorIndex] = pushVelocityX;
+            pushVelocities[vectorIndex + 1] = pushVelocityY;
+        }
+
+        dotField.geometry.attributes.pushOffset.needsUpdate = true;
+    }
+
+    function updatePointerPosition(event) {
+        if (!isPointerPushEnabled() || event.pointerType === 'touch') {
+            pointer.active = false;
+            return;
+        }
+
+        if (event.clientX < 0 || event.clientX > width || event.clientY < 0 || event.clientY > height) {
+            pointer.active = false;
+            return;
+        }
+
+        pointer.active = true;
+        pointer.x = event.clientX - width / 2;
+        pointer.y = height / 2 - event.clientY;
+    }
+
+    function deactivatePointer() {
+        pointer.active = false;
+    }
+
     function update(deltaSeconds) {
         motionTime += deltaSeconds;
         currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
+        updatePointerPush(deltaSeconds);
     }
 
     function renderScene() {
@@ -307,13 +479,25 @@ function initializeDotBackground(THREE, canvas) {
 
     window.addEventListener('resize', requestResize);
     window.visualViewport?.addEventListener('resize', requestResize);
+    window.addEventListener('blur', deactivatePointer);
+    window.addEventListener('pointercancel', deactivatePointer);
+    window.addEventListener('pointermove', updatePointerPosition, { passive: true });
+    window.addEventListener('pointerout', (event) => {
+        if (!event.relatedTarget) {
+            deactivatePointer();
+        }
+    });
     window.addEventListener('scroll', () => {
         targetScrollY = getParallaxScrollY();
     }, { passive: true });
     document.addEventListener('visibilitychange', startRendering);
-    reducedMotionQuery.addEventListener('change', startRendering);
+    reducedMotionQuery.addEventListener('change', () => {
+        resetPointerPush();
+        startRendering();
+    });
     mobileQuery.addEventListener('change', () => {
         createDotFieldForViewport();
+        resetPointerPush();
         startRendering();
     });
     smallPhoneQuery.addEventListener('change', () => {
