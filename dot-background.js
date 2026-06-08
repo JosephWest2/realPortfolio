@@ -49,6 +49,7 @@ function initializeDotBackground(THREE, canvas) {
     let currentScrollY = window.scrollY;
     let targetScrollY = window.scrollY;
     let dotField = null;
+    let hasPointerPushMotion = false;
     const pointer = {
         active: false,
         x: 0,
@@ -196,6 +197,10 @@ function initializeDotBackground(THREE, canvas) {
         return {
             geometry,
             material,
+            maxX,
+            maxY,
+            minX,
+            minY,
             parallaxes,
             points,
             positions,
@@ -274,7 +279,7 @@ function initializeDotBackground(THREE, canvas) {
         camera.position.z = 10;
         camera.updateProjectionMatrix();
 
-        if (widthChanged || dprChanged || !dotField || (heightChanged && !mobileQuery.matches)) {
+        if (widthChanged || !dotField || (heightChanged && !mobileQuery.matches)) {
             createDotFieldForViewport();
         }
 
@@ -297,19 +302,9 @@ function initializeDotBackground(THREE, canvas) {
         return !mobileQuery.matches && !reducedMotionQuery.matches;
     }
 
-    function getDotBounds() {
-        const bounds = dotField.material.uniforms.bounds.value;
-
-        return {
-            maxX: bounds.y,
-            maxY: bounds.w,
-            minX: bounds.x,
-            minY: bounds.z,
-        };
-    }
-
     function resetPointerPush() {
         pointer.active = false;
+        hasPointerPushMotion = false;
 
         if (!dotField) {
             return;
@@ -328,28 +323,21 @@ function initializeDotBackground(THREE, canvas) {
         const pushOffsets = dotField.pushOffsets;
         const pushVelocities = dotField.pushVelocities;
         const hasPointerForce = pointer.active && isPointerPushEnabled();
-        let hasPushMotion = hasPointerForce;
 
-        if (!hasPointerForce) {
-            for (let index = 0; index < pushVelocities.length; index++) {
-                if (Math.abs(pushVelocities[index]) > 0.01) {
-                    hasPushMotion = true;
-                    break;
-                }
-            }
-        }
-
-        if (!hasPushMotion) {
+        if (!hasPointerForce && !hasPointerPushMotion) {
             return;
         }
 
-        const { maxX, maxY, minX, minY } = getDotBounds();
+        const { maxX, maxY, minX, minY } = dotField;
         const radius = pointerPushConfig.radius;
         const radiusSq = radius * radius;
+        const maxVelocity = pointerPushConfig.maxVelocity;
+        const maxVelocitySq = maxVelocity * maxVelocity;
         const velocityDamping = Math.exp(-pointerPushConfig.velocityDamping * deltaSeconds);
         const positions = dotField.positions;
         const velocities = dotField.velocities;
         const parallaxes = dotField.parallaxes;
+        let nextHasPointerPushMotion = hasPointerForce;
 
         for (let index = 0; index < pushOffsets.length / 2; index++) {
             const positionIndex = index * 3;
@@ -394,9 +382,9 @@ function initializeDotBackground(THREE, canvas) {
             pushVelocityX *= velocityDamping;
             pushVelocityY *= velocityDamping;
 
-            const velocityMagnitude = Math.hypot(pushVelocityX, pushVelocityY);
-            if (velocityMagnitude > pointerPushConfig.maxVelocity) {
-                const velocityScale = pointerPushConfig.maxVelocity / velocityMagnitude;
+            const velocityMagnitudeSq = pushVelocityX * pushVelocityX + pushVelocityY * pushVelocityY;
+            if (velocityMagnitudeSq > maxVelocitySq) {
+                const velocityScale = maxVelocity / Math.sqrt(velocityMagnitudeSq);
                 pushVelocityX *= velocityScale;
                 pushVelocityY *= velocityScale;
             }
@@ -407,6 +395,8 @@ function initializeDotBackground(THREE, canvas) {
             if (!hasPointerForce && Math.abs(pushVelocityX) < 0.02 && Math.abs(pushVelocityY) < 0.02) {
                 pushVelocityX = 0;
                 pushVelocityY = 0;
+            } else if (!hasPointerForce) {
+                nextHasPointerPushMotion = true;
             }
 
             pushOffsets[vectorIndex] = offsetX;
@@ -415,6 +405,7 @@ function initializeDotBackground(THREE, canvas) {
             pushVelocities[vectorIndex + 1] = pushVelocityY;
         }
 
+        hasPointerPushMotion = nextHasPointerPushMotion;
         dotField.geometry.attributes.pushOffset.needsUpdate = true;
     }
 
