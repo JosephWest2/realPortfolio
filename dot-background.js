@@ -214,7 +214,7 @@ function initializeDotBackground(THREE, canvas) {
         clearDotField();
 
         const baseDotCount = clamp(Math.floor((width * height) / 28000), 28, 75);
-        const totalDotCount = Math.round(baseDotCount * 2 / 3);
+        const totalDotCount = Math.round(baseDotCount * 4 / 9);
         dotField = createDotField(totalDotCount);
     }
 
