@@ -62,6 +62,61 @@ function initializeDotBackground(THREE, canvas) {
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const randomBetween = (min, max) => min + Math.random() * (max - min);
     const positiveModulo = (value, divisor) => ((value % divisor) + divisor) % divisor;
+    let motionTime = 0;
+
+    const dotVertexShader = `
+        attribute vec2 velocity;
+
+        uniform vec4 bounds;
+        uniform float pointSize;
+        uniform float time;
+
+        float wrapRange(float value, float minValue, float maxValue) {
+            float range = maxValue - minValue;
+            return minValue + mod(value - minValue, range);
+        }
+
+        void main() {
+            vec3 animatedPosition = position;
+            animatedPosition.x = wrapRange(position.x + velocity.x * time, bounds.x, bounds.y);
+            animatedPosition.y = wrapRange(position.y + velocity.y * time, bounds.z, bounds.w);
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPosition, 1.0);
+            gl_PointSize = pointSize;
+        }
+    `;
+
+    const dotFragmentShader = `
+        uniform float opacity;
+        uniform sampler2D dotTexture;
+
+        void main() {
+            vec4 dotColor = texture2D(dotTexture, gl_PointCoord);
+
+            if (dotColor.a < 0.01) {
+                discard;
+            }
+
+            gl_FragColor = vec4(dotColor.rgb, dotColor.a * opacity);
+        }
+    `;
+
+    function createDotMaterial(config, bounds) {
+        return new THREE.ShaderMaterial({
+            depthTest: false,
+            depthWrite: false,
+            fragmentShader: dotFragmentShader,
+            transparent: true,
+            uniforms: {
+                bounds: { value: bounds },
+                dotTexture: { value: dotTexture },
+                opacity: { value: config.opacity },
+                pointSize: { value: config.size },
+                time: { value: motionTime },
+            },
+            vertexShader: dotVertexShader,
+        });
+    }
 
     function createDotLayer(config, totalDotCount, layerIndex) {
         const margin = 96;
@@ -88,18 +143,12 @@ function initializeDotBackground(THREE, canvas) {
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 2));
 
-        const material = new THREE.PointsMaterial({
-            alphaTest: 0.01,
-            color: 0xffffff,
-            depthTest: false,
-            depthWrite: false,
-            map: dotTexture,
-            opacity: config.opacity,
-            size: config.size,
-            sizeAttenuation: false,
-            transparent: true,
-        });
+        const material = createDotMaterial(
+            config,
+            new THREE.Vector4(minX, maxX, minY, maxY),
+        );
 
         const group = new THREE.Group();
         const primaryPoints = new THREE.Points(geometry, material);
@@ -117,13 +166,7 @@ function initializeDotBackground(THREE, canvas) {
             geometry,
             group,
             material,
-            maxX,
-            maxY,
-            minX,
-            minY,
-            positions,
             primaryPoints,
-            velocities,
             wrapHeight,
             wrappedPoints,
         };
@@ -193,38 +236,9 @@ function initializeDotBackground(THREE, canvas) {
         });
     }
 
-    function updateLayerPositions(layer, deltaSeconds) {
-        const positionAttribute = layer.geometry.getAttribute('position');
-
-        for (let index = 0; index < layer.velocities.length / 2; index++) {
-            const positionIndex = index * 3;
-            const velocityIndex = index * 2;
-
-            layer.positions[positionIndex] += layer.velocities[velocityIndex] * deltaSeconds;
-            layer.positions[positionIndex + 1] += layer.velocities[velocityIndex + 1] * deltaSeconds;
-
-            if (layer.positions[positionIndex] < layer.minX) {
-                layer.positions[positionIndex] = layer.maxX;
-            } else if (layer.positions[positionIndex] > layer.maxX) {
-                layer.positions[positionIndex] = layer.minX;
-            }
-
-            if (layer.positions[positionIndex + 1] < layer.minY) {
-                layer.positions[positionIndex + 1] = layer.maxY;
-            } else if (layer.positions[positionIndex + 1] > layer.maxY) {
-                layer.positions[positionIndex + 1] = layer.minY;
-            }
-        }
-
-        positionAttribute.needsUpdate = true;
-    }
-
     function update(deltaSeconds) {
+        motionTime += deltaSeconds;
         currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
-
-        layers.forEach(layer => {
-            updateLayerPositions(layer, deltaSeconds);
-        });
     }
 
     function renderScene() {
@@ -236,6 +250,7 @@ function initializeDotBackground(THREE, canvas) {
 
             layer.primaryPoints.position.y = layerOffset;
             layer.wrappedPoints.position.y = layerOffset - layer.wrapHeight;
+            layer.material.uniforms.time.value = motionTime;
         });
 
         renderer.render(scene, camera);
