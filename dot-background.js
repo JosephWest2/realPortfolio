@@ -29,7 +29,7 @@ function initializeDotBackground(THREE, canvas) {
         opacityMin: 0.28,
         parallaxMax: 0.2,
         parallaxMin: 0.053,
-        sizeMax: 18.4,
+        sizeMax: 12.27,
         sizeMin: 5.2,
         speedMax: 5.5,
         speedMin: 0.5,
