@@ -1,188 +1,244 @@
-(() => {
-    const canvas = document.getElementById('dot-canvas');
-    if (!canvas) {
-        return;
-    }
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js';
 
-    const ctx = canvas.getContext('2d');
+const canvas = document.getElementById('dot-canvas');
+
+if (canvas) {
+    try {
+        initializeDotBackground(THREE, canvas);
+    } catch (error) {
+        console.warn('Dot background disabled.', error);
+        canvas.style.display = 'none';
+    }
+}
+
+function initializeDotBackground(THREE, canvas) {
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const mobileQuery = window.matchMedia('(max-width: 47.999rem)');
-    const pointer = {
-        x: 0,
-        y: 0,
-        active: false,
-    };
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
+    const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: false,
+        alpha: false,
+        powerPreference: 'low-power',
+    });
+    const dotTexture = createDotTexture(THREE);
+    const layerConfigs = [
+        {
+            countShare: 0.34,
+            opacity: 0.22,
+            parallax: 0.08,
+            size: 4.2,
+            speedMin: 0.5,
+            speedMax: 1.8,
+        },
+        {
+            countShare: 0.36,
+            opacity: 0.34,
+            parallax: 0.17,
+            size: 5.8,
+            speedMin: 1.1,
+            speedMax: 3.2,
+        },
+        {
+            countShare: 0.3,
+            opacity: 0.5,
+            parallax: 0.3,
+            size: 7.6,
+            speedMin: 2.2,
+            speedMax: 5.5,
+        },
+    ];
 
-    let dots = [];
     let width = 0;
     let height = 0;
     let dpr = 1;
-    let animationFrame = 0;
-    let lastFrameTime = 0;
     let resizeFrame = 0;
+    let lastFrameTime = 0;
     let currentScrollY = window.scrollY;
     let targetScrollY = window.scrollY;
+    let layers = [];
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const randomBetween = (min, max) => min + Math.random() * (max - min);
+    const positiveModulo = (value, divisor) => ((value % divisor) + divisor) % divisor;
 
-    function getViewportSize() {
-        const viewport = window.visualViewport;
+    function createDotLayer(config, totalDotCount, layerIndex) {
+        const margin = 96;
+        const count = Math.max(1, Math.round(totalDotCount * config.countShare));
+        const positions = new Float32Array(count * 3);
+        const velocities = new Float32Array(count * 2);
+        const minX = -width / 2 - margin;
+        const maxX = width / 2 + margin;
+        const minY = -height / 2 - margin;
+        const maxY = height / 2 + margin;
+
+        for (let index = 0; index < count; index++) {
+            const positionIndex = index * 3;
+            const velocityIndex = index * 2;
+            const speed = randomBetween(config.speedMin, config.speedMax);
+            const angle = randomBetween(0, Math.PI * 2);
+
+            positions[positionIndex] = randomBetween(minX, maxX);
+            positions[positionIndex + 1] = randomBetween(minY, maxY);
+            positions[positionIndex + 2] = layerIndex;
+            velocities[velocityIndex] = Math.cos(angle) * speed;
+            velocities[velocityIndex + 1] = Math.sin(angle) * speed;
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            alphaTest: 0.01,
+            color: 0xffffff,
+            depthTest: false,
+            depthWrite: false,
+            map: dotTexture,
+            opacity: config.opacity,
+            size: config.size,
+            sizeAttenuation: false,
+            transparent: true,
+        });
+
+        const group = new THREE.Group();
+        const primaryPoints = new THREE.Points(geometry, material);
+        const wrappedPoints = new THREE.Points(geometry, material);
+        const wrapHeight = height + margin * 2;
+
+        primaryPoints.renderOrder = layerIndex;
+        wrappedPoints.renderOrder = layerIndex;
+        group.add(primaryPoints);
+        group.add(wrappedPoints);
+        scene.add(group);
 
         return {
-            width: Math.round(viewport?.width || document.documentElement.clientWidth || window.innerWidth),
-            height: Math.round(viewport?.height || document.documentElement.clientHeight || window.innerHeight),
+            config,
+            geometry,
+            group,
+            material,
+            maxX,
+            maxY,
+            minX,
+            minY,
+            positions,
+            primaryPoints,
+            velocities,
+            wrapHeight,
+            wrappedPoints,
         };
     }
 
-    function resizeCanvas() {
-        const nextDpr = clamp(window.devicePixelRatio || 1, 1, 2);
+    function createLayers() {
+        clearLayers();
+
+        const totalDotCount = clamp(Math.floor((width * height) / 14000), 55, 150);
+        layers = layerConfigs.map((config, index) => createDotLayer(config, totalDotCount, index));
+    }
+
+    function clearLayers() {
+        layers.forEach(layer => {
+            scene.remove(layer.group);
+            layer.geometry.dispose();
+            layer.material.dispose();
+        });
+        layers = [];
+    }
+
+    function getViewportSize() {
+        return {
+            width: Math.round(document.documentElement.clientWidth || window.innerWidth),
+            height: Math.round(document.documentElement.clientHeight || window.innerHeight),
+        };
+    }
+
+    function resizeRenderer() {
         const nextSize = getViewportSize();
-        const isInitialResize = dots.length === 0;
+        const nextDpr = clamp(window.devicePixelRatio || 1, 1, 1.25);
         const widthChanged = nextSize.width !== width;
         const heightChanged = nextSize.height !== height;
         const dprChanged = nextDpr !== dpr;
-        const shouldCreateDots = isInitialResize || widthChanged || dprChanged || (!mobileQuery.matches && heightChanged);
 
-        dpr = nextDpr;
-        width = nextSize.width;
-        height = nextSize.height;
-
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        if (shouldCreateDots) {
-            createDots();
-        } else {
-            normalizeDots();
-        }
-
-        draw();
-    }
-
-    function requestCanvasResize() {
-        window.cancelAnimationFrame(resizeFrame);
-        resizeFrame = window.requestAnimationFrame(() => {
-            resizeFrame = 0;
-            resizeCanvas();
-        });
-    }
-
-    function createDots() {
-        const dotCount = clamp(Math.floor((width * height) / 14000), 55, 150);
-
-        dots = Array.from({ length: dotCount }, () => {
-            const depth = randomBetween(0, 1);
-            const radius = randomBetween(0.7, 2.2) + depth * randomBetween(1.2, 3.4);
-            const driftSpeed = randomBetween(1.5, 5) + depth * 6;
-            const angle = randomBetween(0, Math.PI * 2);
-
-            return {
-                x: randomBetween(0, width),
-                y: randomBetween(0, height),
-                radius,
-                depth,
-                blur: (1 - depth) * 3.2,
-                opacity: 0.2 + depth * 0.45,
-                baseVx: Math.cos(angle) * driftSpeed,
-                baseVy: Math.sin(angle) * driftSpeed,
-                vx: Math.cos(angle) * driftSpeed,
-                vy: Math.sin(angle) * driftSpeed,
-            };
-        });
-    }
-
-    function normalizeDots() {
-        dots.forEach(dot => {
-            dot.x = clamp(dot.x, 0, width);
-            dot.y = clamp(dot.y, 0, height);
-        });
-    }
-
-    function wrapDot(dot) {
-        const margin = 40;
-
-        if (dot.x < -margin) {
-            dot.x = width + margin;
-        } else if (dot.x > width + margin) {
-            dot.x = -margin;
-        }
-
-        if (dot.y < -margin) {
-            dot.y = height + margin;
-        } else if (dot.y > height + margin) {
-            dot.y = -margin;
-        }
-    }
-
-    function getProjectedPosition(dot) {
-        if (reducedMotionQuery.matches || mobileQuery.matches) {
-            return {
-                x: dot.x,
-                y: dot.y,
-            };
-        }
-
-        const parallaxOffset = currentScrollY * (0.08 + dot.depth * 0.22);
-        let x = dot.x;
-        let y = dot.y - parallaxOffset;
-
-        y = ((y % (height + 80)) + height + 80) % (height + 80) - 40;
-
-        return { x, y };
-    }
-
-    function drawDot(dot) {
-        const { x, y } = getProjectedPosition(dot);
-
-        ctx.save();
-        ctx.filter = dot.blur > 0.1 ? `blur(${dot.blur}px)` : 'none';
-        ctx.globalAlpha = dot.opacity;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x, y, dot.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, width, height);
-        dots.forEach(drawDot);
-    }
-
-    function update(deltaSeconds) {
-        if (reducedMotionQuery.matches) {
+        if (!widthChanged && !heightChanged && !dprChanged) {
             return;
         }
 
-        currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
+        width = Math.max(1, nextSize.width);
+        height = Math.max(1, nextSize.height);
+        dpr = nextDpr;
 
-        dots.forEach(dot => {
-            if (pointer.active && !mobileQuery.matches) {
-                const { x, y } = getProjectedPosition(dot);
-                const dx = x - pointer.x;
-                const dy = y - pointer.y;
-                const distance = Math.hypot(dx, dy);
-                const radius = 120;
+        renderer.setPixelRatio(dpr);
+        renderer.setSize(width, height, false);
+        renderer.setClearColor(0x1c1b21, 1);
 
-                if (distance > 0 && distance < radius) {
-                    const force = ((radius - distance) / radius) ** 2;
-                    const push = force * (102 + dot.depth * 132) * deltaSeconds;
-                    dot.vx += (dx / distance) * push;
-                    dot.vy += (dy / distance) * push;
-                }
+        camera.left = -width / 2;
+        camera.right = width / 2;
+        camera.top = height / 2;
+        camera.bottom = -height / 2;
+        camera.position.z = 10;
+        camera.updateProjectionMatrix();
+
+        if (widthChanged || dprChanged || layers.length === 0 || (heightChanged && !mobileQuery.matches)) {
+            createLayers();
+        }
+
+        renderScene();
+    }
+
+    function requestResize() {
+        window.cancelAnimationFrame(resizeFrame);
+        resizeFrame = window.requestAnimationFrame(() => {
+            resizeFrame = 0;
+            resizeRenderer();
+        });
+    }
+
+    function updateLayerPositions(layer, deltaSeconds) {
+        const positionAttribute = layer.geometry.getAttribute('position');
+
+        for (let index = 0; index < layer.velocities.length / 2; index++) {
+            const positionIndex = index * 3;
+            const velocityIndex = index * 2;
+
+            layer.positions[positionIndex] += layer.velocities[velocityIndex] * deltaSeconds;
+            layer.positions[positionIndex + 1] += layer.velocities[velocityIndex + 1] * deltaSeconds;
+
+            if (layer.positions[positionIndex] < layer.minX) {
+                layer.positions[positionIndex] = layer.maxX;
+            } else if (layer.positions[positionIndex] > layer.maxX) {
+                layer.positions[positionIndex] = layer.minX;
             }
 
-            dot.vx += (dot.baseVx - dot.vx) * 0.55 * deltaSeconds;
-            dot.vy += (dot.baseVy - dot.vy) * 0.55 * deltaSeconds;
+            if (layer.positions[positionIndex + 1] < layer.minY) {
+                layer.positions[positionIndex + 1] = layer.maxY;
+            } else if (layer.positions[positionIndex + 1] > layer.maxY) {
+                layer.positions[positionIndex + 1] = layer.minY;
+            }
+        }
 
-            dot.x += dot.vx * deltaSeconds;
-            dot.y += dot.vy * deltaSeconds;
-            wrapDot(dot);
+        positionAttribute.needsUpdate = true;
+    }
+
+    function update(deltaSeconds) {
+        currentScrollY += (targetScrollY - currentScrollY) * clamp(deltaSeconds * 32, 0, 1);
+
+        layers.forEach(layer => {
+            updateLayerPositions(layer, deltaSeconds);
         });
+    }
+
+    function renderScene() {
+        layers.forEach(layer => {
+            const scrollOffset = reducedMotionQuery.matches
+                ? 0
+                : currentScrollY * layer.config.parallax;
+            const layerOffset = positiveModulo(scrollOffset, layer.wrapHeight);
+
+            layer.primaryPoints.position.y = layerOffset;
+            layer.wrappedPoints.position.y = layerOffset - layer.wrapHeight;
+        });
+
+        renderer.render(scene, camera);
     }
 
     function animate(time) {
@@ -192,40 +248,57 @@
 
         lastFrameTime = time;
         update(deltaSeconds);
-        draw();
-        animationFrame = window.requestAnimationFrame(animate);
+        renderScene();
     }
 
-    function startAnimation() {
-        window.cancelAnimationFrame(animationFrame);
+    function startRendering() {
+        renderer.setAnimationLoop(null);
         lastFrameTime = 0;
-        draw();
+        currentScrollY = window.scrollY;
+        targetScrollY = window.scrollY;
+        renderScene();
 
-        if (!reducedMotionQuery.matches && !document.hidden) {
-            animationFrame = window.requestAnimationFrame(animate);
+        if (!document.hidden && !reducedMotionQuery.matches) {
+            renderer.setAnimationLoop(animate);
         }
     }
 
-    window.addEventListener('resize', requestCanvasResize);
-    window.visualViewport?.addEventListener('resize', requestCanvasResize);
-    window.addEventListener('pointermove', event => {
-        pointer.x = event.clientX;
-        pointer.y = event.clientY;
-        pointer.active = true;
-    });
-    window.addEventListener('pointerleave', () => {
-        pointer.active = false;
-    });
+    window.addEventListener('resize', requestResize);
+    window.visualViewport?.addEventListener('resize', requestResize);
     window.addEventListener('scroll', () => {
         targetScrollY = window.scrollY;
     }, { passive: true });
-    document.addEventListener('visibilitychange', startAnimation);
-    reducedMotionQuery.addEventListener('change', startAnimation);
+    document.addEventListener('visibilitychange', startRendering);
+    reducedMotionQuery.addEventListener('change', startRendering);
     mobileQuery.addEventListener('change', () => {
-        resizeCanvas();
-        startAnimation();
+        createLayers();
+        startRendering();
     });
 
-    resizeCanvas();
-    startAnimation();
-})();
+    resizeRenderer();
+    startRendering();
+}
+
+function createDotTexture(THREE) {
+    const textureCanvas = document.createElement('canvas');
+    const size = 64;
+    const center = size / 2;
+    const context = textureCanvas.getContext('2d');
+
+    textureCanvas.width = size;
+    textureCanvas.height = size;
+
+    const gradient = context.createRadialGradient(center, center, 0, center, center, center);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradient.addColorStop(0.35, 'rgba(255, 255, 255, 0.85)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+
+    return texture;
+}
