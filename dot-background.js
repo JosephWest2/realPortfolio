@@ -23,33 +23,17 @@ function initializeDotBackground(THREE, canvas) {
         alpha: false,
         powerPreference: 'low-power',
     });
-    const dotTexture = createDotTexture(THREE);
-    const layerConfigs = [
-        {
-            countShare: 0.34,
-            opacity: 0.28,
-            parallax: 0.08,
-            size: 5.2,
-            speedMin: 0.5,
-            speedMax: 1.8,
-        },
-        {
-            countShare: 0.36,
-            opacity: 0.42,
-            parallax: 0.17,
-            size: 7.1,
-            speedMin: 1.1,
-            speedMax: 3.2,
-        },
-        {
-            countShare: 0.3,
-            opacity: 0.6,
-            parallax: 0.3,
-            size: 9.2,
-            speedMin: 2.2,
-            speedMax: 5.5,
-        },
-    ];
+    const dotDepthConfig = {
+        edgeSoftnessMax: 0.32,
+        opacityMax: 0.6,
+        opacityMin: 0.28,
+        parallaxMax: 0.2,
+        parallaxMin: 0.053,
+        sizeMax: 18.4,
+        sizeMin: 5.2,
+        speedMax: 5.5,
+        speedMin: 0.5,
+    };
 
     let width = 0;
     let height = 0;
@@ -58,19 +42,28 @@ function initializeDotBackground(THREE, canvas) {
     let lastFrameTime = 0;
     let currentScrollY = window.scrollY;
     let targetScrollY = window.scrollY;
-    let layers = [];
+    let dotField = null;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const lerp = (min, max, amount) => min + (max - min) * amount;
     const randomBetween = (min, max) => min + Math.random() * (max - min);
-    const positiveModulo = (value, divisor) => ((value % divisor) + divisor) % divisor;
     let motionTime = 0;
 
     const dotVertexShader = `
+        attribute float dotSize;
+        attribute float edgeSoftness;
+        attribute float opacity;
+        attribute float parallax;
         attribute vec2 velocity;
 
         uniform vec4 bounds;
+        uniform float scrollY;
         uniform float pointSize;
         uniform float time;
+
+        varying float vDotSize;
+        varying float vEdgeSoftness;
+        varying float vOpacity;
 
         float wrapRange(float value, float minValue, float maxValue) {
             float range = maxValue - minValue;
@@ -80,113 +73,129 @@ function initializeDotBackground(THREE, canvas) {
         void main() {
             vec3 animatedPosition = position;
             animatedPosition.x = wrapRange(position.x + velocity.x * time, bounds.x, bounds.y);
-            animatedPosition.y = wrapRange(position.y + velocity.y * time, bounds.z, bounds.w);
+            animatedPosition.y = wrapRange(position.y + velocity.y * time + scrollY * parallax, bounds.z, bounds.w);
+
+            vDotSize = dotSize;
+            vEdgeSoftness = edgeSoftness;
+            vOpacity = opacity;
 
             gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPosition, 1.0);
-            gl_PointSize = pointSize;
+            gl_PointSize = dotSize * pointSize;
         }
     `;
 
     const dotFragmentShader = `
-        uniform float opacity;
-        uniform sampler2D dotTexture;
+        uniform vec3 backgroundColor;
+        uniform vec3 dotColor;
+
+        varying float vDotSize;
+        varying float vEdgeSoftness;
+        varying float vOpacity;
 
         void main() {
-            vec4 dotColor = texture2D(dotTexture, gl_PointCoord);
+            float distanceFromCenter = distance(gl_PointCoord, vec2(0.5));
+            float antialiasSoftness = 0.75 / max(vDotSize, 1.0);
+            float edgeSoftness = max(vEdgeSoftness, antialiasSoftness);
+            float alpha = 1.0 - smoothstep(0.5 - edgeSoftness, 0.5, distanceFromCenter);
 
-            if (dotColor.a < 0.01) {
+            if (alpha < 0.01) {
                 discard;
             }
 
-            gl_FragColor = vec4(dotColor.rgb, dotColor.a * opacity);
+            gl_FragColor = vec4(mix(backgroundColor, dotColor, alpha * vOpacity), 1.0);
         }
     `;
 
-    function createDotMaterial(config, bounds) {
+    function createDotMaterial(bounds) {
         return new THREE.ShaderMaterial({
+            blending: THREE.NoBlending,
             depthTest: false,
             depthWrite: false,
             fragmentShader: dotFragmentShader,
-            transparent: true,
+            transparent: false,
             uniforms: {
+                backgroundColor: { value: new THREE.Color(0x1c1b21) },
                 bounds: { value: bounds },
-                dotTexture: { value: dotTexture },
-                opacity: { value: config.opacity },
-                pointSize: { value: config.size },
+                dotColor: { value: new THREE.Color(0xffffff) },
+                pointSize: { value: 1 },
+                scrollY: { value: 0 },
                 time: { value: motionTime },
             },
             vertexShader: dotVertexShader,
         });
     }
 
-    function createDotLayer(config, totalDotCount, layerIndex) {
+    function createDotField(totalDotCount) {
         const margin = 96;
-        const count = Math.max(1, Math.round(totalDotCount * config.countShare));
-        const positions = new Float32Array(count * 3);
-        const velocities = new Float32Array(count * 2);
+        const count = Math.max(1, totalDotCount);
         const minX = -width / 2 - margin;
         const maxX = width / 2 + margin;
         const minY = -height / 2 - margin;
         const maxY = height / 2 + margin;
+        const positions = new Float32Array(count * 3);
+        const velocities = new Float32Array(count * 2);
+        const dotSizes = new Float32Array(count);
+        const edgeSoftnesses = new Float32Array(count);
+        const opacities = new Float32Array(count);
+        const parallaxes = new Float32Array(count);
 
         for (let index = 0; index < count; index++) {
             const positionIndex = index * 3;
             const velocityIndex = index * 2;
-            const speed = randomBetween(config.speedMin, config.speedMax);
+            const depth = Math.pow(Math.random(), 1.45);
+            const speed = clamp(
+                lerp(dotDepthConfig.speedMin, dotDepthConfig.speedMax, depth) * randomBetween(0.75, 1.25),
+                dotDepthConfig.speedMin,
+                dotDepthConfig.speedMax,
+            );
             const angle = randomBetween(0, Math.PI * 2);
 
             positions[positionIndex] = randomBetween(minX, maxX);
             positions[positionIndex + 1] = randomBetween(minY, maxY);
-            positions[positionIndex + 2] = layerIndex;
+            positions[positionIndex + 2] = depth;
             velocities[velocityIndex] = Math.cos(angle) * speed;
             velocities[velocityIndex + 1] = Math.sin(angle) * speed;
+            dotSizes[index] = lerp(dotDepthConfig.sizeMin, dotDepthConfig.sizeMax, depth);
+            edgeSoftnesses[index] = dotDepthConfig.edgeSoftnessMax * Math.pow(1 - depth, 1.25);
+            opacities[index] = lerp(dotDepthConfig.opacityMin, dotDepthConfig.opacityMax, depth);
+            parallaxes[index] = lerp(dotDepthConfig.parallaxMin, dotDepthConfig.parallaxMax, depth);
         }
 
         const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('dotSize', new THREE.BufferAttribute(dotSizes, 1));
+        geometry.setAttribute('edgeSoftness', new THREE.BufferAttribute(edgeSoftnesses, 1));
+        geometry.setAttribute('opacity', new THREE.BufferAttribute(opacities, 1));
+        geometry.setAttribute('parallax', new THREE.BufferAttribute(parallaxes, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 2));
 
-        const material = createDotMaterial(
-            config,
-            new THREE.Vector4(minX, maxX, minY, maxY),
-        );
-
-        const group = new THREE.Group();
-        const primaryPoints = new THREE.Points(geometry, material);
-        const wrappedPoints = new THREE.Points(geometry, material);
-        const wrapHeight = height + margin * 2;
-
-        primaryPoints.renderOrder = layerIndex;
-        wrappedPoints.renderOrder = layerIndex;
-        group.add(primaryPoints);
-        group.add(wrappedPoints);
-        scene.add(group);
+        const material = createDotMaterial(new THREE.Vector4(minX, maxX, minY, maxY));
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
 
         return {
-            config,
             geometry,
-            group,
             material,
-            primaryPoints,
-            wrapHeight,
-            wrappedPoints,
+            points,
         };
     }
 
-    function createLayers() {
-        clearLayers();
+    function createDotFieldForViewport() {
+        clearDotField();
 
-        const totalDotCount = clamp(Math.floor((width * height) / 14000), 55, 150);
-        layers = layerConfigs.map((config, index) => createDotLayer(config, totalDotCount, index));
+        const totalDotCount = clamp(Math.floor((width * height) / 28000), 28, 75);
+        dotField = createDotField(totalDotCount);
     }
 
-    function clearLayers() {
-        layers.forEach(layer => {
-            scene.remove(layer.group);
-            layer.geometry.dispose();
-            layer.material.dispose();
-        });
-        layers = [];
+    function clearDotField() {
+        if (!dotField) {
+            return;
+        }
+
+        scene.remove(dotField.points);
+        dotField.geometry.dispose();
+        dotField.material.dispose();
+        dotField = null;
     }
 
     function getViewportSize() {
@@ -239,8 +248,8 @@ function initializeDotBackground(THREE, canvas) {
         camera.position.z = 10;
         camera.updateProjectionMatrix();
 
-        if (widthChanged || dprChanged || layers.length === 0 || (heightChanged && !mobileQuery.matches)) {
-            createLayers();
+        if (widthChanged || dprChanged || !dotField || (heightChanged && !mobileQuery.matches)) {
+            createDotFieldForViewport();
         }
 
         renderScene();
@@ -266,16 +275,10 @@ function initializeDotBackground(THREE, canvas) {
     function renderScene() {
         const scrollParallaxDisabled = reducedMotionQuery.matches || smallPhoneQuery.matches;
 
-        layers.forEach(layer => {
-            const scrollOffset = scrollParallaxDisabled
-                ? 0
-                : currentScrollY * layer.config.parallax;
-            const layerOffset = positiveModulo(scrollOffset, layer.wrapHeight);
-
-            layer.primaryPoints.position.y = layerOffset;
-            layer.wrappedPoints.position.y = layerOffset - layer.wrapHeight;
-            layer.material.uniforms.time.value = motionTime;
-        });
+        if (dotField) {
+            dotField.material.uniforms.scrollY.value = scrollParallaxDisabled ? 0 : currentScrollY;
+            dotField.material.uniforms.time.value = motionTime;
+        }
 
         renderer.render(scene, camera);
     }
@@ -310,7 +313,7 @@ function initializeDotBackground(THREE, canvas) {
     document.addEventListener('visibilitychange', startRendering);
     reducedMotionQuery.addEventListener('change', startRendering);
     mobileQuery.addEventListener('change', () => {
-        createLayers();
+        createDotFieldForViewport();
         startRendering();
     });
     smallPhoneQuery.addEventListener('change', () => {
@@ -320,28 +323,4 @@ function initializeDotBackground(THREE, canvas) {
 
     resizeRenderer();
     startRendering();
-}
-
-function createDotTexture(THREE) {
-    const textureCanvas = document.createElement('canvas');
-    const size = 64;
-    const center = size / 2;
-    const context = textureCanvas.getContext('2d');
-
-    textureCanvas.width = size;
-    textureCanvas.height = size;
-
-    const gradient = context.createRadialGradient(center, center, 0, center, center, center);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.35, 'rgba(255, 255, 255, 0.85)');
-    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, size, size);
-
-    const texture = new THREE.CanvasTexture(textureCanvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.needsUpdate = true;
-
-    return texture;
 }
