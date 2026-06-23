@@ -24,7 +24,6 @@
         <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32">
         <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
         <link rel="stylesheet" href="main.css">
-        <script src="https://kit.fontawesome.com/1078a16cc9.js" crossorigin="anonymous"></script>
         <script src="main.js" defer></script>
         <script src="dot-background.js" type="module"></script>
     </head>
@@ -32,12 +31,28 @@
         <canvas id="dot-canvas"></canvas>
         <main id="content">
             <div class="intro card">
-                <img class="pfp" src="images/pfp.webp" alt="A portrait photo of Joseph West">
+                <img class="pfp" src="images/pfp.webp" alt="A portrait photo of Joseph West" width="515" height="592" decoding="async" fetchpriority="high">
                 <h1 class="name">Hi, I'm <span class="header-bold">Joseph West</span></h1>
                 <div class="contact">
-                    <a href="https://www.google.com/maps/place/Chicago,+IL" alt="link to Chicago on Google Maps" target="_blank" class="location"><i class="fa-solid fa-location-dot location-icon"></i>Chicago, IL</a>
-                    <a href="https://github.com/JosephWest2" target="_blank" alt="Link to Joseph's github" class="github-link"><i class="fa-brands fa-github link-icon"></i></a>
-                    <a class="contact-me" href="mailto:joeywest1414@gmail.com" target="_blank" alt="Link to email me at joeywest1414@gmail.com"><i class="fa-solid fa-envelope link-icon"></i>Contact Me</a>
+                    <a href="https://www.google.com/maps/place/Chicago,+IL" aria-label="Chicago, IL on Google Maps" target="_blank" class="location">
+                        <svg class="location-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 22s7-6.6 7-13a7 7 0 0 0-14 0c0 6.4 7 13 7 13z"></path>
+                            <circle cx="12" cy="9" r="2.5"></circle>
+                        </svg>
+                        Chicago, IL
+                    </a>
+                    <a href="https://github.com/JosephWest2" target="_blank" aria-label="Joseph West on GitHub" class="github-link">
+                        <svg class="link-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.4 3-.4s2.04.13 3 .4c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.49 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.82.58A12.01 12.01 0 0 0 24 12c0-6.63-5.37-12-12-12z"></path>
+                        </svg>
+                    </a>
+                    <a class="contact-me" href="mailto:joeywest1414@gmail.com" target="_blank" aria-label="Email Joseph West">
+                        <svg class="link-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"></path>
+                            <path d="m22 7-10 6L2 7"></path>
+                        </svg>
+                        Contact Me
+                    </a>
                 </div>
                 <h2 class="description">A Biochemist turned Software Engineer</h2>
                 <div class="about">
@@ -49,45 +64,45 @@
                 <h2 class="technologies-title"><span class="header-bold">Technologies</span> I'm focused on</h2>
                 <div class="technologies-icon-grid">
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/cppIcon.webp" alt="C++ Icon">
+                        <img class="technology-icon" src="images/technologies/cppIcon.webp" alt="C++ Icon" width="456" height="512" loading="lazy" decoding="async">
                         <figcaption>C++</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/postgresIcon.webp" alt="Postgres Icon">
+                        <img class="technology-icon" src="images/technologies/postgresIcon.webp" alt="Postgres Icon" width="497" height="512" loading="lazy" decoding="async">
                         <figcaption>PostgreSQL</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/webIcons.webp" alt="Typescript CSS and HTML Icons">
+                        <img class="technology-icon" src="images/technologies/webIcons.webp" alt="Typescript CSS and HTML Icons" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>Typescript HTML CSS</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/gitIcon.webp" alt="Git Icon">
+                        <img class="technology-icon" src="images/technologies/gitIcon.webp" alt="Git Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>Git</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/nextjsIcon.webp" alt="NextJS Icon">
+                        <img class="technology-icon" src="images/technologies/nextjsIcon.webp" alt="NextJS Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>NextJS</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/linuxIcon.webp" alt="Linux Icon">
+                        <img class="technology-icon" src="images/technologies/linuxIcon.webp" alt="Linux Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>Linux</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/agenticIcons.webp" alt="Coding Agents Icon">
+                        <img class="technology-icon" src="images/technologies/agenticIcons.webp" alt="Coding Agents Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>Coding Agents</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/cloudIcon.webp" alt="Cloud Infrastructure Icon">
+                        <img class="technology-icon" src="images/technologies/cloudIcon.webp" alt="Cloud Infrastructure Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>Cloud Infrastructure</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/rustIcon.webp" alt="Rust Icon">
+                        <img class="technology-icon" src="images/technologies/rustIcon.webp" alt="Rust Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>Rust</figcaption>
                     </figure>
                     <figure class="technology-figure">
-                        <img class="technology-icon" src="images/technologies/csharpIcon.webp" alt="C# Icon">
+                        <img class="technology-icon" src="images/technologies/csharpIcon.webp" alt="C# Icon" width="512" height="512" loading="lazy" decoding="async">
                         <figcaption>C#</figcaption>
-                    </figure class="technology-figure">
+                    </figure>
                 </div>
             </div>
             <div class="experience card">
@@ -98,25 +113,25 @@
                 <div class="experience-slider" id="experience-slider">
                     <div class="experience-section">
                         <div class="experience-item-container">
-                            <img class="experience-icon" src="images/experience/nmhLogo.webp" alt="A picture of the Intermountain Health logo">
+                            <img class="experience-icon" src="images/experience/nmhLogo.webp" alt="A picture of the Intermountain Health logo" width="512" height="512" loading="lazy" decoding="async">
                             <h4 class="experience-title">Sterile Processing Tech 2: Northwestern Memorial Hospital</h4>
                             <h4 class="experience-duration">03/2026 - present</h4>
                             <p class="experience-description">Clean, assemble, and sterilize surgical equipment for hospital use. Prepare surgery case carts for use.</p>
                         </div>
                         <div class="experience-item-container">
-                            <img class="experience-icon" src="images/experience/endeavorLogo.webp" alt="A picture of the Intermountain Health logo">
+                            <img class="experience-icon" src="images/experience/endeavorLogo.webp" alt="A picture of the Intermountain Health logo" width="503" height="486" loading="lazy" decoding="async">
                             <h4 class="experience-title">Sterile Processing Tech: Skokie Hospital</h4>
                             <h4 class="experience-duration">08/2025 - 03/2026</h4>
                             <p class="experience-description">Cleaned, assembled, and sterilized surgical equipment for hospital use.</p>
                         </div>
                         <div class="experience-item-container">
-                            <img class="experience-icon" src="images/experience/imhIcon.webp" alt="A picture of the Intermountain Health logo">
+                            <img class="experience-icon" src="images/experience/imhIcon.webp" alt="A picture of the Intermountain Health logo" width="1080" height="1080" loading="lazy" decoding="async">
                             <h4 class="experience-title">Central Processing Tech 2: Intermountain Health</h4>
                             <h4 class="experience-duration">12/2023 - 08/2025</h4>
                             <p class="experience-description">Cleaned, assembled, and sterilized surgical equipment for hospital use. Assisted with leading second shift.</p>
                         </div>
                         <div class="experience-item-container">
-                            <img class="experience-icon" src="images/experience/nelsonLabsIcon.webp" alt="A picture of the Nelson Labs logo">
+                            <img class="experience-icon" src="images/experience/nelsonLabsIcon.webp" alt="A picture of the Nelson Labs logo" width="180" height="180" loading="lazy" decoding="async">
                             <h4 class="experience-title">Lab Technician: Nelson Labs</h4>
                             <h4 class="experience-duration">02/2023 - 08/2023</h4>
                             <p class="experience-description">Tested medical device sterility in a cleanroom by utilizing aseptic technique to incubate devices.</p>
@@ -124,13 +139,13 @@
                     </div>
                     <div class="experience-section">
                         <div class="experience-item-container">
-                            <img class="experience-icon" src="images/experience/wsuLogo.webp" alt="A picture of the Weber State University logo">
+                            <img class="experience-icon" src="images/experience/wsuLogo.webp" alt="A picture of the Weber State University logo" width="225" height="237" loading="lazy" decoding="async">
                             <h4 class="experience-title">Bachelor's of Science: Computer Science</h4>
                             <h4 class="experience-duration">12/2026</h4>
                             <p class="experience-description">Graduating with a second bachelor's of science in computer science from Weber State University in December 2026. I currently have a 3.92 GPA</p>
                         </div>
                         <div class="experience-item-container">
-                            <img class="experience-icon" src="images/experience/unmLogo.webp" alt="A picture of the University of New Mexico logo">
+                            <img class="experience-icon" src="images/experience/unmLogo.webp" alt="A picture of the University of New Mexico logo" width="247" height="225" loading="lazy" decoding="async">
                             <h4 class="experience-title">Bachelor's of Science: Biochemistry</h4>
                             <h4 class="experience-duration">12/2022</h4>
                             <p class="experience-description">Graduated with a bachelor's of science in biochemistry from the University of New Mexico. I graduated with a 3.63 GPA</p>
@@ -142,27 +157,27 @@
                 <h2 class="projects-title">Recent <span class="header-bold">projects</span></h2>
                 <div class="project">
                     <h3 class="project-title">Recipe List</h3>
-                    <img class="project-img" src="images/projects/recipe-list-screenshot.webp" alt="An image of the recipe list application">
+                    <img class="project-img" src="images/projects/recipe-list-screenshot.webp" srcset="images/projects/recipe-list-screenshot-640.webp 640w, images/projects/recipe-list-screenshot.webp 1144w" sizes="(max-width: 39.999rem) calc(100vw - 4.3rem), (max-width: 47.999rem) calc(100vw - 6rem), 23rem" alt="An image of the recipe list application" width="1144" height="786" loading="lazy" decoding="async">
                     <p class="project-description">A web app hosting many recipes and streamlining the process of shopping for their ingredients with a fully integrated grocery list application. Has many advanced features including automatic unit conversions and unification for all ingredients.</p>
                     <div class="project-technologies">
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/solidIcon.webp" alt="SolidJS Icon">
+                            <img class="project-technology-icon" src="images/technologies/solidIcon.webp" alt="SolidJS Icon" width="280" height="280" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">Solidstart</figcaption>
                         </figure>
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/postgresIcon.webp" alt="Postgres Icon">
+                            <img class="project-technology-icon" src="images/technologies/postgresIcon.webp" alt="Postgres Icon" width="497" height="512" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">PostgreSQL</figcaption>
                         </figure>
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/tailwindIcon.webp" alt="Tailwind CSS Icon">
+                            <img class="project-technology-icon" src="images/technologies/tailwindIcon.webp" alt="Tailwind CSS Icon" width="512" height="313" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">Tailwind CSS</figcaption>
                         </figure>
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/openai.webp" alt="OpenAI Icon">
+                            <img class="project-technology-icon" src="images/technologies/openai.webp" alt="OpenAI Icon" width="800" height="800" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">OpenAI API</figcaption>
                         </figure>
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/aws-ec2.svg" alt="AWS EC2 Icon">
+                            <img class="project-technology-icon" src="images/technologies/aws-ec2.svg" alt="AWS EC2 Icon" width="800" height="800" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">AWS EC2</figcaption>
                         </figure>
                     </div>
@@ -174,19 +189,19 @@
                 </div>
                 <div class="project">
                     <h3 class="project-title">Schwab Portfolio Manager</h3>
-                    <img class="project-img" src="images/projects/stocks.webp" alt="An image of the Schwab Portfolio Manager project">
+                    <img class="project-img" src="images/projects/stocks.webp" srcset="images/projects/stocks-640.webp 640w, images/projects/stocks.webp 1200w" sizes="(max-width: 39.999rem) calc(100vw - 4.3rem), (max-width: 47.999rem) calc(100vw - 6rem), 23rem" alt="An image of the Schwab Portfolio Manager project" width="1200" height="800" loading="lazy" decoding="async">
                     <p class="project-description">A command line application that I use to execute trades in my Charles Schwab investment accounts, investing cash and rebalancing assets in order to execute my personal investment strategy</p>
                     <div class="project-technologies">
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/golangIcon.webp" alt="Golang Icon">
+                            <img class="project-technology-icon" src="images/technologies/golangIcon.webp" alt="Golang Icon" width="512" height="512" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">Golang</figcaption>
                         </figure>
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/schwab.webp" alt="Schwab Icon">
+                            <img class="project-technology-icon" src="images/technologies/schwab.webp" alt="Schwab Icon" width="240" height="240" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">Schwab API</figcaption>
                         </figure>
                         <figure class="project-technology-figure">
-                            <img class="project-technology-icon" src="images/technologies/oauth.webp" alt="Oauth Icon">
+                            <img class="project-technology-icon" src="images/technologies/oauth.webp" alt="Oauth Icon" width="510" height="512" loading="lazy" decoding="async">
                             <figcaption class="project-technology-caption">Oauth2</figcaption>
                         </figure>
                     </div>

@@ -1,13 +1,28 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js';
-
 const canvas = document.getElementById('dot-canvas');
 
 if (canvas) {
-    try {
-        initializeDotBackground(THREE, canvas);
-    } catch (error) {
-        console.warn('Dot background disabled.', error);
-        canvas.style.display = 'none';
+    const scheduleBackgroundLoad = (callback) => {
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(callback, { timeout: 1500 });
+            return;
+        }
+
+        window.setTimeout(callback, 700);
+    };
+    const loadDotBackground = async () => {
+        try {
+            const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js');
+            initializeDotBackground(THREE, canvas);
+        } catch (error) {
+            console.warn('Dot background disabled.', error);
+            canvas.style.display = 'none';
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => scheduleBackgroundLoad(loadDotBackground), { once: true });
+    } else {
+        scheduleBackgroundLoad(loadDotBackground);
     }
 }
 
@@ -49,6 +64,7 @@ function initializeDotBackground(THREE, canvas) {
     let currentScrollY = window.scrollY;
     let targetScrollY = window.scrollY;
     let dotField = null;
+    let hasRevealedCanvas = false;
     let hasPointerPushMotion = false;
     const pointer = {
         active: false,
@@ -444,6 +460,11 @@ function initializeDotBackground(THREE, canvas) {
         }
 
         renderer.render(scene, camera);
+
+        if (dotField && !hasRevealedCanvas) {
+            hasRevealedCanvas = true;
+            canvas.dataset.ready = 'true';
+        }
     }
 
     function animate(time) {

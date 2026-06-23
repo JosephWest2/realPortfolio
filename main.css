@@ -114,7 +114,20 @@ p {
     grid-area: contact;
 }
 .link-icon {
-    font-size: 1.5em;
+    width: 1.5em;
+    height: 1.5em;
+    flex: none;
+}
+.github-link .link-icon {
+    fill: currentColor;
+}
+.location-icon,
+.contact-me .link-icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
 }
 .contact-me {
     border-radius: var(--rounded-edges);
@@ -137,7 +150,8 @@ p {
 
 .pfp {
     width: var(--pfp-size);
-    aspect-ratio: 515 / 592;
+    height: calc(var(--pfp-size) * 1.1);
+    aspect-ratio: 1 / 1.1;
     object-fit: cover;
     margin: auto 2rem;
     border-radius: 50%;
@@ -150,13 +164,17 @@ p {
 }
 .location {
     transition: opacity 150ms ease-in-out;
+    display: inline-flex;
+    align-items: center;
 }
 .location:hover {
     opacity: 0.8;
 }
 .location-icon {
     padding-right: 0.3em;
-    font-size: 1.2em;
+    width: 1.8em;
+    height: 1.8em;
+    flex: none;
 }
 .description {
     grid-area: description;
@@ -385,6 +403,12 @@ figcaption {
     height: 100%;
     z-index: 0;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms ease-out;
+}
+
+#dot-canvas[data-ready="true"] {
+    opacity: 1;
 }
 
 #content {
