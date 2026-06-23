@@ -404,7 +404,7 @@ figcaption {
     z-index: 0;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 500ms ease-out;
+    transition: opacity 1000ms ease-in-out;
 }
 
 #dot-canvas[data-ready="true"] {
